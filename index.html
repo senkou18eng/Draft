@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Draft">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<title>Draft</title>
+<style>
+  :root {
+    --ink: #1c1f23; --sub: #6a727d; --line: #e3e6ea; --soft: #f5f6f7;
+    --go: #1f6f5c; --off: #b6bcc4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: #ffffff; color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+    line-height: 1.5;
+    padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  main { max-width: 520px; margin: 0 auto; }
+  header { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+  h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; }
+  header span { font-size: 11px; color: var(--sub); }
+
+  .rules { margin-top: 10px; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+  .rules div { display: grid; grid-template-columns: 96px 1fr; align-items: baseline; padding: 3px 0; border-bottom: 1px solid var(--line); }
+  .rules b { font-size: 9.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sub); }
+  .rules span { font-size: 14px; }
+  .rules p { font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sub); text-align: right; margin-top: 5px; }
+
+  h2 { font-size: 12px; font-weight: 700; color: var(--sub); margin: 16px 0 6px; }
+  textarea {
+    width: 100%; min-height: 150px; resize: vertical;
+    font: inherit; font-size: 16px; line-height: 1.6; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fff;
+  }
+  textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
+
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  button {
+    font: inherit; font-size: 14px; color: var(--ink); background: #fff;
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px; min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+  button:disabled { color: var(--off); border-color: var(--line); background: var(--soft); }
+  .wide { width: 100%; margin-top: 6px; }
+  .primary { background: var(--go); border-color: var(--go); color: #fff; font-weight: 700; font-size: 15px; }
+  .primary:disabled { background: var(--soft); border-color: var(--line); color: var(--off); }
+
+  #status { margin-top: 8px; font-size: 13px; color: var(--sub); min-height: 20px; }
+  #status b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  label.check { display: grid; grid-template-columns: 26px 1fr; align-items: start; gap: 4px; font-size: 14px; padding: 10px 12px; background: var(--soft); border-radius: 10px; }
+  label.check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--go); }
+
+  .after { display: none; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .after.on { display: grid; }
+  a.btn { display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; min-height: 44px; }
+
+  .hold { display: grid; gap: 6px; }
+  .hold button { text-align: left; padding: 10px 12px; }
+  #toast { font-size: 12px; color: var(--go); min-height: 18px; margin-top: 6px; }
+  footer { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--line); }
+  footer button { color: var(--sub); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Draft</h1>
+    <span>この端末の中にだけ保存されます</span>
+  </header>
+
+  <section class="rules" aria-label="原則">
+    <div><b>Feelings</b><span>share them.</span></div>
+    <div><b>Explaining</b><span>only if asked.</span></div>
+    <div><b>Savior</b><span>not needed.</span></div>
+    <div><b>Actions</b><span>pause. ask first.</span></div>
+    <div><b>Waiting</b><span>stay calm. don’t push.</span></div>
+    <div><b>Decisions</b><span>not mine.</span></div>
+    <p>except emergencies.</p>
+  </section>
+
+  <h2><label for="text">下書き</label></h2>
+  <textarea id="text" placeholder="送る前に、ここに書く。"></textarea>
+
+  <h2>待ち時間</h2>
+  <div class="seg" role="group" aria-label="待ち時間">
+    <button type="button" data-wait="now" aria-pressed="false">すぐ</button>
+    <button type="button" data-wait="10" aria-pressed="true">10分</button>
+    <button type="button" data-wait="morning" aria-pressed="false">翌朝7時</button>
+  </div>
+  <button type="button" id="start" class="wide">この内容で待つ</button>
+  <div id="status" aria-live="polite"></div>
+
+  <h2>確認</h2>
+  <label class="check"><input type="checkbox" id="ok"><span>これを送って、相手が何も変えなくても平気。</span></label>
+
+  <button type="button" id="copy" class="wide primary" disabled>コピーする</button>
+  <div class="after" id="after">
+    <a class="btn" id="open" href="discord://">Discordを開く</a>
+    <button type="button" id="clear2">下書きを消す</button>
+  </div>
+  <div id="toast" aria-live="polite"></div>
+
+  <h2>つなぎの一言（すぐコピーできます）</h2>
+  <div class="hold">
+    <button type="button" data-hold="少し考えさせて。">少し考えさせて。</button>
+    <button type="button" data-hold="いま、うまく言葉にならない。少し時間がほしい。">いま、うまく言葉にならない。少し時間がほしい。</button>
+  </div>
+
+  <footer>
+    <button type="button" id="clear" class="wide">下書きと待ち時間を破棄する</button>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "draft-app-v1";
+  var $ = function (id) { return document.getElementById(id); };
+  var text = $("text"), startBtn = $("start"), statusEl = $("status"), ok = $("ok"),
+      copyBtn = $("copy"), after = $("after"), toast = $("toast"), clearBtn = $("clear");
+  var segs = Array.prototype.slice.call(document.querySelectorAll("[data-wait]"));
+  var mem = {};
+  var state = { text: "", wait: "10", lockUntil: null, ok: false, copied: false };
+  var clearArmed = false;
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var s = JSON.parse(raw); for (var k in state) if (k in s) state[k] = s[k]; }
+    } catch (e) { if (mem.raw) state = JSON.parse(mem.raw); }
+  }
+  function save() {
+    var raw = JSON.stringify(state);
+    try { localStorage.setItem(KEY, raw); } catch (e) { mem.raw = raw; }
+  }
+
+  function nextMorning(now) {
+    var t = new Date(now); t.setHours(7, 0, 0, 0);
+    if (t.getTime() - now < 5 * 3600 * 1000) t.setDate(t.getDate() + 1);
+    return t.getTime();
+  }
+  function lockTime(kind, now) {
+    if (kind === "now") return now;
+    if (kind === "morning") return nextMorning(now);
+    return now + 10 * 60 * 1000;
+  }
+  function fmt(ms) {
+    var s = Math.max(0, Math.ceil(ms / 1000));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if (h > 0) return h + "時間" + m + "分";
+    return m + "分" + (sec < 10 ? "0" : "") + sec + "秒";
+  }
+  function clock(ts) {
+    var d = new Date(ts);
+    return d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes();
+  }
+
+  function render() {
+    var now = Date.now();
+    var locked = state.lockUntil !== null;
+    var waiting = locked && now < state.lockUntil;
+    var hasText = state.text.trim().length > 0;
+
+    segs.forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.wait === state.wait));
+      b.disabled = locked;
+    });
+    startBtn.disabled = locked || !hasText;
+    startBtn.textContent = locked ? "待ち時間を開始済み" : "この内容で待つ";
+
+    if (!locked) statusEl.textContent = hasText ? "待ち時間を選んで「この内容で待つ」を押すと、コピーできるようになります。" : "";
+    else if (waiting) statusEl.innerHTML = "コピーできるまで <b>あと" + fmt(state.lockUntil - now) + "</b>（" + clock(state.lockUntil) + " まで）。読み返すだけにして、待つ。";
+    else statusEl.textContent = "待ち時間が終わりました。もう一度読み返してから、確認にチェックを。";
+
+    ok.checked = state.ok;
+    copyBtn.disabled = !(locked && !waiting && state.ok && hasText);
+    after.classList.toggle("on", state.copied);
+    clearBtn.textContent = clearArmed ? "もう一度押すと破棄します" : "下書きと待ち時間を破棄する";
+  }
+
+  function copyText(str) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(str).catch(function () { return legacyCopy(str); });
+    }
+    return legacyCopy(str);
+  }
+  function legacyCopy(str) {
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement("textarea");
+      ta.value = str; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, str.length);
+      var done = false;
+      try { done = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      done ? resolve() : reject(new Error("copy failed"));
+    });
+  }
+  function say(msg) { toast.textContent = msg; }
+
+  function reset() {
+    state = { text: "", wait: "10", lockUntil: null, ok: false, copied: false };
+    text.value = ""; clearArmed = false; save(); say(""); render();
+  }
+
+  text.addEventListener("input", function () {
+    state.text = text.value;
+    if (state.copied) { state.copied = false; }
+    save(); render();
+  });
+  segs.forEach(function (b) {
+    b.addEventListener("click", function () { state.wait = b.dataset.wait; save(); render(); });
+  });
+  startBtn.addEventListener("click", function () {
+    state.lockUntil = lockTime(state.wait, Date.now()); state.ok = false; state.copied = false;
+    save(); render();
+  });
+  ok.addEventListener("change", function () { state.ok = ok.checked; save(); render(); });
+  copyBtn.addEventListener("click", function () {
+    copyText(state.text).then(function () {
+      state.copied = true; save(); render(); say("コピーしました。");
+    }, function () { say("コピーできませんでした。下書きを長押しして、手動でコピーしてください。"); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-hold]"), function (b) {
+    b.addEventListener("click", function () {
+      copyText(b.dataset.hold).then(function () { say("「" + b.dataset.hold + "」をコピーしました。"); },
+        function () { say("コピーできませんでした。"); });
+    });
+  });
+  $("clear2").addEventListener("click", reset);
+  clearBtn.addEventListener("click", function () {
+    if (clearArmed) { reset(); return; }
+    clearArmed = true; render();
+    setTimeout(function () { clearArmed = false; render(); }, 4000);
+  });
+
+  load(); text.value = state.text; render();
+  setInterval(render, 1000);
+  document.addEventListener("visibilitychange", render);
+
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
